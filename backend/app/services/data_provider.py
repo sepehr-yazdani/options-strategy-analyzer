@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import logging
 from datetime import date, timedelta
 
@@ -49,21 +50,28 @@ async def get_option_chain(
     symbol: str,
     from_date: str | None = None,
     to_date: str | None = None,
+    skip_enrichment: bool = False,
 ) -> tuple[OptionChainResponse, str]:
-    if to_date is None:
-        earnings_to = _get_to_date_for_earnings(symbol)
+    if to_date is None and not skip_enrichment:
+        loop = asyncio.get_event_loop()
+        earnings_to = await loop.run_in_executor(None, _get_to_date_for_earnings, symbol)
         default_to = (date.today() + timedelta(days=90)).isoformat()
         if earnings_to and earnings_to > default_to:
             to_date = earnings_to
 
     try:
         chain = await _schwab.get_option_chain(symbol, from_date, to_date)
-        if chain.short_interest is None:
-            chain.short_interest = _fetch_short_interest(symbol)
+        if not skip_enrichment and chain.short_interest is None:
+            loop = asyncio.get_event_loop()
+            chain.short_interest = await loop.run_in_executor(None, _fetch_short_interest, symbol)
         return chain, "schwab"
     except Exception as exc:
         logger.info("Schwab chain unavailable, falling back to Yahoo: %s", exc)
         return await _yahoo.get_option_chain(symbol, from_date, to_date), "yahoo"
+
+
+async def get_option_chain_fast(symbol: str) -> tuple[OptionChainResponse, str]:
+    return await get_option_chain(symbol, skip_enrichment=True)
 
 
 async def get_quote(symbol: str) -> tuple[QuoteResponse, str]:
