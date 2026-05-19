@@ -27,7 +27,6 @@ body {
   font-size: 18px;
   font-weight: 600;
   color: #f9fafb;
-  margin-bottom: 10px;
 }
 
 .header-controls {
@@ -96,6 +95,71 @@ body {
   font-size: 18px;
   color: #6366f1;
   font-weight: 600;
+}
+
+.header-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.btn-guide {
+  background: #1e2130;
+  border: 1px solid #3d4054;
+  color: #9ca3af;
+  padding: 4px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.btn-guide:hover {
+  color: #e5e7eb;
+  border-color: #6366f1;
+}
+
+/* Signal Guide */
+.signal-guide {
+  background: #1a1d27;
+  border-bottom: 1px solid #2d3040;
+  padding: 12px 24px;
+}
+
+.guide-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.guide-card {
+  background: #0f1117;
+  border: 1px solid #2d3040;
+  border-radius: 6px;
+  padding: 10px;
+}
+
+.guide-card h4 {
+  font-size: 12px;
+  font-weight: 700;
+  color: #f9fafb;
+  margin-bottom: 6px;
+}
+
+.guide-card p {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+.signal-buy {
+  color: #34d399;
+}
+
+.signal-sell {
+  color: #f87171;
 }
 
 /* Main layout */
@@ -1149,6 +1213,45 @@ body {
   gap: 4px;
 }
 
+.unusual-controls {
+  flex-direction: column;
+  gap: 8px;
+}
+
+.unusual-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  width: 100%;
+}
+
+.unusual-input-wrap label {
+  font-size: 12px;
+  color: #9ca3af;
+  white-space: nowrap;
+}
+
+.unusual-input {
+  background: #0f1117;
+  border: 1px solid #3d4054;
+  color: #e5e7eb;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  flex: 1;
+}
+
+.unusual-input:focus {
+  outline: none;
+  border-color: #6366f1;
+}
+
+.unusual-ratio {
+  color: #f59e0b !important;
+  font-weight: 700;
+}
+
 .cal-timing {
   font-size: 11px;
   color: #9ca3af;
@@ -1165,6 +1268,146 @@ body {
   text-align: center;
   padding: 30px;
   font-size: 13px;
+}
+
+/* Squeeze Panel */
+.squeeze-panel {
+  background: #1a1d27;
+  border: 1px solid #2d3040;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.squeeze-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.squeeze-header h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f9fafb;
+}
+
+.squeeze-badge {
+  border: 1px solid;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.squeeze-indicators {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.squeeze-flag {
+  background: #0f1117;
+  border: 1px solid #2d3040;
+  border-radius: 4px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.squeeze-flag.active {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.05);
+}
+
+.flag-label {
+  font-size: 10px;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+
+.flag-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: #e5e7eb;
+}
+
+.flag-status {
+  font-size: 10px;
+  font-weight: 600;
+  color: #9ca3af;
+}
+
+.squeeze-flag.active .flag-status {
+  color: #f59e0b;
+}
+
+.gex-summary {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: #9ca3af;
+  margin-bottom: 8px;
+}
+
+.gex-call {
+  color: #34d399 !important;
+}
+
+.gex-put {
+  color: #f87171 !important;
+}
+
+.pcr-section {
+  margin-bottom: 8px;
+}
+
+.pcr-section h5 {
+  font-size: 11px;
+  font-weight: 600;
+  color: #f9fafb;
+  margin-bottom: 4px;
+}
+
+.pcr-row {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.pcr-sentiment {
+  font-size: 10px;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.gex-strikes h5 {
+  font-size: 11px;
+  font-weight: 600;
+  color: #f9fafb;
+  margin-bottom: 4px;
+}
+
+.gex-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.gex-table th {
+  text-align: left;
+  padding: 3px 6px;
+  color: #9ca3af;
+  font-weight: 500;
+  border-bottom: 1px solid #2d3040;
+}
+
+.gex-table td {
+  padding: 3px 6px;
+  border-bottom: 1px solid #1e2130;
+  color: #e5e7eb;
 }
 
 /* Error Boundary */

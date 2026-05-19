@@ -3,12 +3,16 @@ import {
   fetchMovers,
   fetchWsbSentiment,
   fetchEarningsCalendar,
+  fetchUnusualScan,
+  fetchUnusualTopMovers,
   type MoverQuote,
   type MoversResponse,
   type WsbTicker,
   type WsbResponse,
   type CalendarEntry,
   type CalendarResponse,
+  type UnusualContract,
+  type UnusualResponse,
 } from "../../api/discovery";
 import { useOptionsChain } from "../../hooks/useOptionsChain";
 
@@ -49,7 +53,8 @@ const TIMING_LABELS: Record<string, string> = {
   TNS: "Time N/S",
 };
 
-type DiscoveryView = "movers" | "wsb" | "calendar";
+
+type DiscoveryView = "movers" | "wsb" | "calendar" | "unusual";
 
 export function DiscoveryPanel() {
   const [view, setView] = useState<DiscoveryView>("movers");
@@ -59,6 +64,8 @@ export function DiscoveryPanel() {
   const [calData, setCalData] = useState<CalendarResponse | null>(null);
   const [calStart, setCalStart] = useState(todayStr());
   const [calEnd, setCalEnd] = useState(addDays(todayStr(), 5));
+  const [unusualData, setUnusualData] = useState<UnusualResponse | null>(null);
+  const [scanInput, setScanInput] = useState("");
   const [loading, setLoading] = useState(false);
   const { loadChain } = useOptionsChain();
 
@@ -84,6 +91,25 @@ export function DiscoveryPanel() {
     }
   }, []);
 
+  const loadUnusual = useCallback(async () => {
+    setLoading(true);
+    try {
+      if (scanInput.trim()) {
+        const symbols = scanInput
+          .split(/[,\s]+/)
+          .map((s) => s.trim().toUpperCase())
+          .filter(Boolean);
+        setUnusualData(await fetchUnusualScan(symbols));
+      } else {
+        setUnusualData(await fetchUnusualTopMovers());
+      }
+    } catch {
+      setUnusualData(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [scanInput]);
+
   const loadCal = useCallback(async () => {
     setLoading(true);
     try {
@@ -98,8 +124,9 @@ export function DiscoveryPanel() {
   useEffect(() => {
     if (view === "movers") loadMovers();
     else if (view === "wsb") loadWsb();
-    else loadCal();
-  }, [view, loadMovers, loadWsb, loadCal]);
+    else if (view === "calendar") loadCal();
+    else if (view === "unusual") loadUnusual();
+  }, [view, loadMovers, loadWsb, loadCal, loadUnusual]);
 
   const handleClick = (sym: string) => {
     loadChain(sym);
@@ -125,6 +152,12 @@ export function DiscoveryPanel() {
           onClick={() => setView("calendar")}
         >
           Earnings Calendar
+        </button>
+        <button
+          className={`toggle-btn ${view === "unusual" ? "active" : ""}`}
+          onClick={() => setView("unusual")}
+        >
+          Unusual Activity
         </button>
       </div>
 
@@ -334,6 +367,33 @@ export function DiscoveryPanel() {
               >
                 Next Week
               </button>
+              <button
+                className="toggle-btn"
+                onClick={() => {
+                  setCalStart(todayStr());
+                  setCalEnd(addDays(todayStr(), 30));
+                }}
+              >
+                1 Month
+              </button>
+              <button
+                className="toggle-btn"
+                onClick={() => {
+                  setCalStart(todayStr());
+                  setCalEnd(addDays(todayStr(), 90));
+                }}
+              >
+                3 Months
+              </button>
+              <button
+                className="toggle-btn"
+                onClick={() => {
+                  setCalStart(todayStr());
+                  setCalEnd(addDays(todayStr(), 180));
+                }}
+              >
+                6 Months
+              </button>
             </div>
             <button
               className="btn-refresh"
@@ -387,6 +447,96 @@ export function DiscoveryPanel() {
               No earnings found for {calStart} to {calEnd}
             </div>
           )}
+        </>
+      )}
+
+      {/* UNUSUAL ACTIVITY */}
+      {view === "unusual" && (
+        <>
+          <div className="discovery-controls unusual-controls">
+            <div className="unusual-input-wrap">
+              <label>Custom symbols (leave empty for today's most active):</label>
+              <input
+                type="text"
+                className="unusual-input"
+                value={scanInput}
+                onChange={(e) => setScanInput(e.target.value.toUpperCase())}
+                placeholder="Leave empty for top movers, or enter: NVDA, AAPL, TSLA..."
+              />
+            </div>
+            <button
+              className="btn-refresh"
+              onClick={loadUnusual}
+              disabled={loading}
+            >
+              {loading ? "Scanning..." : "Scan"}
+            </button>
+          </div>
+
+          {!loading &&
+            unusualData &&
+            unusualData.results.length > 0 && (
+              <table className="discovery-table">
+                <thead>
+                  <tr>
+                    <th>Symbol</th>
+                    <th>Type</th>
+                    <th>Strike</th>
+                    <th>Exp</th>
+                    <th>Volume</th>
+                    <th>OI</th>
+                    <th>Vol/OI</th>
+                    <th>IV</th>
+                    <th>Bid/Ask</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {unusualData.results.map(
+                    (u: UnusualContract, i: number) => (
+                      <tr
+                        key={`${u.symbol}-${u.strike}-${u.expiration}-${u.option_type}-${i}`}
+                        className="discovery-row"
+                        onClick={() => handleClick(u.symbol)}
+                      >
+                        <td className="disc-ticker">{u.symbol}</td>
+                        <td
+                          className={
+                            u.option_type === "call"
+                              ? "disc-change-up"
+                              : "disc-change-down"
+                          }
+                        >
+                          {u.option_type.toUpperCase()}
+                        </td>
+                        <td>${u.strike.toFixed(2)}</td>
+                        <td>
+                          {u.expiration} ({u.dte}d)
+                        </td>
+                        <td>
+                          <b>{u.volume.toLocaleString()}</b>
+                        </td>
+                        <td>{u.open_interest.toLocaleString()}</td>
+                        <td className="unusual-ratio">
+                          {u.vol_oi_ratio.toFixed(1)}x
+                        </td>
+                        <td>{(u.iv * 100).toFixed(1)}%</td>
+                        <td className="disc-range">
+                          ${u.bid.toFixed(2)}/${u.ask.toFixed(2)}
+                        </td>
+                      </tr>
+                    )
+                  )}
+                </tbody>
+              </table>
+            )}
+
+          {!loading &&
+            unusualData &&
+            unusualData.results.length === 0 && (
+              <div className="discovery-empty">
+                No unusual activity found
+              </div>
+            )}
         </>
       )}
 
